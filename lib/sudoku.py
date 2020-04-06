@@ -1,12 +1,15 @@
-from dataclasses import dataclass
-from collections.abc import Iterator
-from typing import List
+from __future__ import annotations
 
-ALL_NUMS = set("123456789")
+from collections.abc import Iterator
+from dataclasses import dataclass
+from typing import ClassVar, Iterable, List
 
 
 @dataclass
 class Sudoku:
+    ALL_NUMS: ClassVar = set("123456789")
+    CHECKSUM: ClassVar = sum(range(1, 10))
+
     game: str
 
     def __getitem__(self, key: int) -> str:
@@ -30,13 +33,13 @@ class Sudoku:
     def get_col(self, x: int) -> str:
         return "".join(row[x] for row in self)
 
-    def get_block(self, x: int, y: int) -> str:
-        block_x = x // 3
-        block_y = y // 3
+    def get_square(self, x: int, y: int) -> str:
+        square_x = x // 3
+        square_y = y // 3
 
         return "".join(
-            self[curr_y][block_x * 3 : block_x * 3 + 3]
-            for curr_y in range(block_y * 3, block_y * 3 + 3)
+            self[curr_y][square_x * 3 : square_x * 3 + 3]
+            for curr_y in range(square_y * 3, square_y * 3 + 3)
         )
 
     def possible(self, x: int, y: int, num: int) -> bool:
@@ -49,7 +52,7 @@ class Sudoku:
             (
                 number not in self.get_row(y),
                 number not in self.get_col(x),
-                number not in self.get_block(x, y),
+                number not in self.get_square(x, y),
             )
         )
 
@@ -57,9 +60,70 @@ class Sudoku:
         return [
             int(candidate)
             for candidate in (
-                ALL_NUMS
+                self.ALL_NUMS
                 - set(self.get_row(y))
                 - set(self.get_col(x))
-                - set(self.get_block(x, y))
+                - set(self.get_square(x, y))
             )
         ]
+
+    def iter_rows(self) -> Iterable[str]:
+        for y in range(9):
+            yield self.get_row(y)
+
+    def iter_cols(self) -> Iterable[str]:
+        for x in range(9):
+            yield self.get_col(x)
+
+    def iter_squares(self) -> Iterable[str]:
+        for x in range(0, 9, 3):
+            for y in range(0, 9, 3):
+                yield self.get_square(x, y)
+
+    def check(self, item: str) -> bool:
+        return sum(int(num) for num in item) == self.CHECKSUM
+
+    def is_valid(self):
+        return all((
+            all(self.check(row) for row in self.iter_rows()),
+            all(self.check(col) for col in self.iter_cols()),
+            all(self.check(square) for square in self.iter_squares()),
+        ))
+
+    def solve(self, start_at: int = 0, debug: bool = False) -> Sudoku:
+        for position, num in enumerate(self.game[start_at:], start=start_at):
+            if num in self.ALL_NUMS:  # Field already taken
+                continue
+
+            if debug:
+                print("pos", position)
+
+            y, x = divmod(position, 9)
+            candidates = self.candidates(x, y)
+
+            if not candidates:
+                if debug:
+                    print("No candidates left")
+                return
+
+            for candidate in candidates:
+                if debug:
+                    print("candidate", candidate)
+                    print(
+                        "new game",
+                        self.game[:position]
+                        + str(candidate)
+                        + self.game[position + 1 :],
+                    )
+                    print("old game", self.game)
+                    input("Next")
+                yield from Sudoku(
+                    f"{self.game[:position]}{candidate}{self.game[position + 1 :]}"
+                ).solve(position, debug)
+            else:
+                if debug:
+                    print("Gone through all candidates")
+                return
+
+        if self.is_valid():
+            yield self
