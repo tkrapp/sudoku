@@ -78,7 +78,7 @@ class Sudoku:
     def check(self, item: str) -> bool:
         return set(item) == self.ALL_NUMS
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         return all(
             (
                 all(self.check(row) for row in self.iter_rows()),
