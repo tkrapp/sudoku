@@ -8,7 +8,7 @@ and strings as the sudoku representation.
 To run it, simply start run.py with a recent python interpreter
 (tested with python 3.7 and 3.8).
 
-```python
+```sh
 python ./run.py
 ```
 
