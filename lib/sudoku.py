@@ -87,7 +87,7 @@ class Sudoku:
             )
         )
 
-    def solve(self, start_at: int = 0, debug: bool = False) -> Sudoku:
+    def solve(self, start_at: int = 0, debug: bool = False) -> Iterable[Sudoku]:
         for position, num in enumerate(self.game[start_at:], start=start_at):
             if num in self.ALL_NUMS:  # Field already taken
                 continue
