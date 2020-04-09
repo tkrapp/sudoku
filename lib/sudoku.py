@@ -19,7 +19,7 @@ class Sudoku:
 
     ALL_NUMS: ClassVar = set("123456789")
     FIELD_SIZE: ClassVar = 9
-    SQUARE_SIZE: Classvar = 3
+    SQUARE_SIZE: ClassVar = 3
 
     def __str__(self) -> str:
         "Pretty print the field"
@@ -100,7 +100,7 @@ class Sudoku:
     def iter_squares(self) -> Iterable[str]:
         "Iterate over all square blocks of the game"
 
-        for x, y in product(tee(range(0, self.FIELD_SIZE, self.SQUARE_SIZE))):
+        for x, y in product(*tee(range(0, self.FIELD_SIZE, self.SQUARE_SIZE))):
             yield self.get_square(x, y)
 
     def check(self, item: str) -> bool:
